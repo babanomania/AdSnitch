@@ -2,9 +2,10 @@
   "name": "adsnitch",
   "version": "1.0.0",
   "description": "_Your TinyLlama-powered Discord tattletale that exposes the shady world of DNS requests — with sarcasm._",
-  "main": "index.js",
+  "main": "src/bot.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node src/bot.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
