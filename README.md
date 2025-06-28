@@ -9,6 +9,7 @@ Every day, AdSnitch reports:
 - The worst offenders (looking at you, `telemetry.yourTV.com`)
 - Suspicious patterns (`why-do-you-need-20-ad-requests-in-a-minute.com`)
 - Absurd domains you didn't know existed
+- Security and reputation info from VirusTotal
 - And all this, with a generous sprinkle of snark, sarcasm, and LLM-generated wit
 
 ## Why?
@@ -24,7 +25,7 @@ Because... why not?
 - **Discord bot** integration with clean embeds
 - Supports **Pi-hole** and **AdGuard Home** as data sources
 - Fully customizable tone: sarcastic, serious, sysadmin-rage, or Munna Bhai-style
-- **Domain intelligence** lookup via RDAP for context-aware summaries
+- **Domain intelligence** lookup via **VirusTotal** for context-aware, security-focused summaries
 - If no Discord token is provided, summaries are printed to the console
 - Optionally delegate summarization to OpenAI by providing `OPENAI_API_KEY` if TinyLlama is too slow on your machine
 
@@ -32,14 +33,14 @@ Because... why not?
 
 > _"The award for Most Blocked Domain goes to... `ads.doubleclick.net`, again. Yawn."_  
 > _"Congratulations, your Wi-Fi light bulb just attempted to sell your soul 48 times today."_
+> _"[VT] Malicious: 2, Suspicious: 1, Harmless: 10, Categories: Advertising, Reputation: -5"_
 
-![Example Report Embed](https://your-screenshot-url.com)
 
 ## How it Works
 
 1. Parse DNS logs from Pi-hole / AdGuard Home (via API or log scrape).
 2. Aggregate daily request data (blocked domains, counts, time trends).
-3. Look up domain details via RDAP (or your custom API).
+3. Look up domain details and security reputation via VirusTotal.
 4. Use TinyLlama (through `node-llama-cpp`) to craft a satirical summary.
 5. Send the report as a Discord embed (or print to console if Discord is not configured).
 
@@ -51,28 +52,30 @@ For development, the `data/mock_logs.json` file mimics Pi-hole/AdGuard output. A
 git clone https://github.com/babanomania/adsnitch.git
 cd adsnitch
 npm install
-cp .env.example .env   # Set up your bot token and Pi-hole/AdGuard details
+cp .env.example .env   # Set up your bot token, Pi-hole/AdGuard, and VirusTotal details
 npm start
-````
+```
 
 Source code is organized under `src/` with test data in `data/`.
 
 ## Configuration
 
-| Variable        | Description                                  |
-| --------------- | -------------------------------------------- |
-| `DISCORD_TOKEN` | Your Discord bot token                       |
-| `PIHOLE_URL`    | Pi-hole API or log file path                 |
-| `ADGUARD_URL`   | (Optional) AdGuard Home API base URL         |
-| `MODEL_PATH`    | Path to TinyLlama model for local inference  |
-| `REPORT_TIME`   | Time of day to send daily summaries (HH\:MM) |
-| `DOMAIN_INFO_API` | Optional API endpoint for domain lookups (defaults to RDAP) |
-| `OPENAI_API_KEY` | Use OpenAI for summaries instead of local TinyLlama |
+| Variable              | Description                                  |
+| --------------------- | -------------------------------------------- |
+| `DISCORD_TOKEN`       | Your Discord bot token                       |
+| `DISCORD_CHANNEL`     | Discord channel ID for reports               |
+| `PIHOLE_URL`          | Pi-hole API or log file path                 |
+| `ADGUARD_URL`         | (Optional) AdGuard Home API base URL         |
+| `ADGUARD_USER`        | (Optional) AdGuard Home username             |
+| `ADGUARD_PASS`        | (Optional) AdGuard Home password             |
+| `MODEL_PATH`          | Path to TinyLlama model for local inference  |
+| `REPORT_TIME`         | Time of day to send daily summaries (HH:MM)  |
+| `VIRUSTOTAL_API_KEY`  | API key for VirusTotal domain intelligence   |
+| `OPENAI_API_KEY`      | Use OpenAI for summaries instead of local TinyLlama |
 
 The repo includes sample data in `data/mock_logs.json` for local testing.
 
-By default domain metadata is pulled from `rdap.org`. Set `DOMAIN_INFO_API` if you
-want to use a different service.
+By default, domain metadata and security info is pulled from VirusTotal. Set `VIRUSTOTAL_API_KEY` in your `.env` file.
 
 ## TODOs
 

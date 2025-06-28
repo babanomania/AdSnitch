@@ -23,6 +23,31 @@ async function buildPrompt(stats) {
     stats.topDomains.map((d) => getDomainInfo(d.domain, domainInfoApi))
   );
 
+  // Aggregate VT stats
+  let vtAgg = { malicious: 0, suspicious: 0, harmless: 0 };
+  let vtCategories = new Set();
+  let vtReputation = 0;
+  let vtRepCount = 0;
+
+  stats.topDomains.forEach((item, idx) => {
+    const info = infos[idx];
+    if (info && info.data && info.data.attributes) {
+      const attr = info.data.attributes;
+      const stats = attr.last_analysis_stats || {};
+      vtAgg.malicious += stats.malicious ?? 0;
+      vtAgg.suspicious += stats.suspicious ?? 0;
+      vtAgg.harmless += stats.harmless ?? 0;
+      if (attr.categories) {
+        Object.values(attr.categories).forEach((cat) => vtCategories.add(cat));
+      }
+      if (typeof attr.reputation === 'number') {
+        vtReputation += attr.reputation;
+        vtRepCount++;
+      }
+    }
+  });
+  const vtSummary = `[VT] Malicious: ${vtAgg.malicious}, Suspicious: ${vtAgg.suspicious}, Harmless: ${vtAgg.harmless}, Categories: ${vtCategories.size ? Array.from(vtCategories).join(', ') : 'N/A'}, Reputation: ${vtRepCount ? Math.round(vtReputation / vtRepCount) : 'N/A'}`;
+
   let lines = ["Today's Creepiest Domains:"];
   stats.topDomains.forEach((item, idx) => {
     const domain = item.domain;
@@ -30,28 +55,14 @@ async function buildPrompt(stats) {
     const info = infos[idx];
     let owner = extractOwner(info);
     let created = '';
-    let vtDetails = '';
-    // If VirusTotal format, extract more details
-    if (info && info.data && info.data.attributes) {
-      const attr = info.data.attributes;
-      if (attr.last_analysis_stats) {
-        const stats = attr.last_analysis_stats;
-        vtDetails += ` VT: Malicious:${stats.malicious}, Suspicious:${stats.suspicious}, Harmless:${stats.harmless}`;
-      }
-      if (attr.categories && Object.keys(attr.categories).length > 0) {
-        vtDetails += `, Categories: ${Object.values(attr.categories).join(', ')}`;
-      }
-      if (typeof attr.reputation === 'number') {
-        vtDetails += `, Reputation: ${attr.reputation}`;
-      }
-      if (attr.whois_date) {
-        created = `, registered ${new Date(attr.whois_date * 1000).toISOString().slice(0, 10)}`;
-      }
+    if (info && info.data && info.data.attributes && info.data.attributes.whois_date) {
+      created = `, registered ${new Date(info.data.attributes.whois_date * 1000).toISOString().slice(0, 10)}`;
     } else if (info && info.domains && info.domains[0]) {
       created = `, born ${info.domains[0].create_date || 'sometime in the void'}`;
     }
-    lines.push(`${idx + 1}. ${domain} - ${count} hits (owned by ${owner}${created})${vtDetails}`);
+    lines.push(`${idx + 1}. ${domain} - ${count} hits (owned by ${owner}${created})`);
   });
+  lines.push(vtSummary);
   return lines.join('\n');
 }
 
@@ -90,7 +101,6 @@ if (token && channelId) {
   client.login(token);
 } else {
   console.log('Discord credentials missing; output will be logged to console.');
-  sendReport(null)
   cron.schedule(`${minute} ${hour} * * *`, () => sendReport(null), {
     timezone: 'UTC'
   });
