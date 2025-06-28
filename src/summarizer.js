@@ -1,5 +1,18 @@
 const path = require('path');
 const fetch = require('node-fetch');
+
+const SYSTEM_PROMPT =
+  'You are a bored and sarcastic assistant summarizing DNS logs. Respond briefly and with disdain.';
+const EXAMPLES = [
+  {
+    user: '1. ads.doubleclick.net - 42 hits',
+    assistant: 'Wow, another ad domain. Riveting.'
+  },
+  {
+    user: '2. telemetry.myapp.com - 30 hits',
+    assistant: "Great, they're spying on us again."
+  }
+];
 let llamaModule;
 let llama;
 let model;
@@ -34,10 +47,15 @@ async function generateSummaryOpenAI(text) {
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'Summarize the following lines with humor.' },
-          { role: 'user', content: text }
-        ]
+        messages: (() => {
+          const msgs = [{ role: 'system', content: SYSTEM_PROMPT }];
+          EXAMPLES.forEach((ex) => {
+            msgs.push({ role: 'user', content: ex.user });
+            msgs.push({ role: 'assistant', content: ex.assistant });
+          });
+          msgs.push({ role: 'user', content: text });
+          return msgs;
+        })()
       })
     });
     const data = await res.json();
@@ -59,7 +77,10 @@ async function generateSummaryLLM(text) {
     const context = await m.createContext();
     const { LlamaChatSession } = llamaMod;
     const session = new LlamaChatSession({ contextSequence: context.getSequence() });
-    const prompt = `Summarize the following lines with humor:\n${text}\nHumorous summary:`;
+    const examples = EXAMPLES.map(
+      (ex, i) => `Example ${i + 1} user:\n${ex.user}\nExample ${i + 1} assistant:\n${ex.assistant}`
+    ).join('\n');
+    const prompt = `${SYSTEM_PROMPT}\n${examples}\nUser:\n${text}\nAssistant:`;
     const result = await session.prompt(prompt);
     return result.trim();
   } catch (err) {

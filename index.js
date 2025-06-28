@@ -23,11 +23,13 @@ const { extractOwner, getDomainInfo } = require('./src/utils/domain');
 // Build a text prompt with domain data
 async function buildPrompt(stats) {
   const infos = await Promise.all(
-    stats.topDomains.map((d) => getDomainInfo(d, domainInfoApi))
+    stats.topDomains.map((d) => getDomainInfo(d.domain, domainInfoApi))
   );
 
   let lines = ['Today\'s Creepiest Domains:'];
-  stats.topDomains.forEach((domain, idx) => {
+  stats.topDomains.forEach((item, idx) => {
+    const domain = item.domain;
+    const count = item.count;
     const info = infos[idx];
     const owner = extractOwner(info);
     let created = '';
@@ -39,7 +41,7 @@ async function buildPrompt(stats) {
         created = `, born ${info.domains[0].create_date || 'sometime in the void'}`;
       }
     }
-    lines.push(`${idx + 1}. ${domain} (owned by ${owner}${created})`);
+    lines.push(`${idx + 1}. ${domain} - ${count} hits (owned by ${owner}${created})`);
   });
   return lines.join('\n');
 }

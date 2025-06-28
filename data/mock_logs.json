@@ -7,5 +7,8 @@
   {"domain": "tracking.somesite.com", "count": 10},
   {"domain": "cdn.suspicious.com", "count": 5},
   {"domain": "analytics.example.org", "count": 2},
-  {"domain": "weird.example", "count": 1}
+  {"domain": "weird.example", "count": 1},
+  {"domain": "ads.example2.com", "count": 8},
+  {"domain": "tracking.lol.com", "count": 4},
+  {"domain": "mystery.shop", "count": 3}
 ]
