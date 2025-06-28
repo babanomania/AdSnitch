@@ -1,7 +1,8 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
-const { generateSummaryLLM } = require('./summarizer');
+// Use the summarizer located in the src directory
+const { generateSummaryLLM } = require('./src/summarizer');
 
 // simple plugin that reads mock logs
 const { getStats } = require('./plugins/mock');
