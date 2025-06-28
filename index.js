@@ -1,8 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
-const fetch = require('node-fetch');
-const fs = require('fs');
 const { generateSummaryLLM } = require('./summarizer');
 
 // simple plugin that reads mock logs
@@ -13,41 +11,24 @@ const channelId = process.env.DISCORD_CHANNEL;
 const reportTime = process.env.REPORT_TIME || '09:00';
 const domainInfoApi = process.env.DOMAIN_INFO_API || null;
 
-const domainDB = JSON.parse(fs.readFileSync('./domains.db', 'utf8'));
 
 // Fetch and aggregate DNS log stats via plugin
 async function getDailyStats() {
   return await getStats();
 }
 
-function getDomainOwner(domain) {
-  const parts = domain.split('.');
-  const root = parts.slice(-2).join('.');
-  return domainDB[domain] || domainDB[root] || 'Unknown';
-}
-
-// Retrieve extra information about a domain
-async function getDomainInfo(domain) {
-  const url = domainInfoApi
-    ? `${domainInfoApi}${domain}`
-    : `https://rdap.org/domain/${domain}`;
-  try {
-    const res = await fetch(url);
-    return await res.json();
-  } catch (err) {
-    console.error('Domain info lookup failed:', err);
-    return null;
-  }
-}
+const { extractOwner, getDomainInfo } = require('./src/utils/domain');
 
 // Build a text prompt with domain data
 async function buildPrompt(stats) {
-  const infos = await Promise.all(stats.topDomains.map((d) => getDomainInfo(d)));
+  const infos = await Promise.all(
+    stats.topDomains.map((d) => getDomainInfo(d, domainInfoApi))
+  );
 
   let lines = ['Today\'s Creepiest Domains:'];
   stats.topDomains.forEach((domain, idx) => {
-    const owner = getDomainOwner(domain);
     const info = infos[idx];
+    const owner = extractOwner(info);
     let created = '';
     if (info) {
       if (info.events) {

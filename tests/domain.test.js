@@ -1,11 +1,19 @@
 const test = require('node:test');
 const assert = require('assert');
-const { getDomainOwner } = require('../src/utils/domain');
+const { extractOwner } = require('../src/utils/domain');
 
-test('returns known owner for t.co', () => {
-  assert.strictEqual(getDomainOwner('t.co'), 'Twitter');
+test('extracts registrant name from RDAP data', () => {
+  const sample = {
+    entities: [
+      {
+        roles: ['registrant'],
+        vcardArray: ['vcard', [['fn', {}, 'text', 'Example Corp']]]
+      }
+    ]
+  };
+  assert.strictEqual(extractOwner(sample), 'Example Corp');
 });
 
-test('falls back to root domain', () => {
-  assert.strictEqual(getDomainOwner('tracking.somesite.com'), 'SomeSite Inc.');
+test('returns Unknown for missing owner', () => {
+  assert.strictEqual(extractOwner(null), 'Unknown');
 });

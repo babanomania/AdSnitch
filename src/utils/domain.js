@@ -1,15 +1,4 @@
-const fs = require('fs');
-const path = require('path');
 const fetch = require('node-fetch');
-
-const dbPath = path.join(__dirname, '..', '..', 'data', 'domains.db');
-const domainDB = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-
-function getDomainOwner(domain) {
-  const parts = domain.split('.');
-  const root = parts.slice(-2).join('.');
-  return domainDB[domain] || domainDB[root] || 'Unknown';
-}
 
 async function getDomainInfo(domain, api = null) {
   const url = api ? `${api}${domain}` : `https://rdap.org/domain/${domain}`;
@@ -21,4 +10,28 @@ async function getDomainInfo(domain, api = null) {
   }
 }
 
-module.exports = { getDomainOwner, getDomainInfo };
+function extractOwner(info) {
+  if (!info) return 'Unknown';
+  if (info.entities && Array.isArray(info.entities)) {
+    const registrant = info.entities.find(
+      (e) => Array.isArray(e.roles) && e.roles.includes('registrant')
+    );
+    if (
+      registrant &&
+      Array.isArray(registrant.vcardArray) &&
+      Array.isArray(registrant.vcardArray[1])
+    ) {
+      const fn = registrant.vcardArray[1].find((v) => v[0] === 'fn');
+      if (fn) return fn[3];
+    }
+  }
+  if (info.name) return info.name;
+  return 'Unknown';
+}
+
+async function getDomainOwner(domain, api = null) {
+  const info = await getDomainInfo(domain, api);
+  return extractOwner(info);
+}
+
+module.exports = { getDomainOwner, getDomainInfo, extractOwner };

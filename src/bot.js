@@ -5,7 +5,7 @@ const { generateSummaryLLM } = require('./summarizer');
 
 // simple plugin that reads mock logs
 const { getStats } = require('./plugins/mock');
-const { getDomainOwner, getDomainInfo } = require('./utils/domain');
+const { extractOwner, getDomainInfo } = require('./utils/domain');
 
 const token = process.env.DISCORD_TOKEN;
 const channelId = process.env.DISCORD_CHANNEL;
@@ -22,11 +22,11 @@ async function buildPrompt(stats) {
   const infos = await Promise.all(
     stats.topDomains.map((d) => getDomainInfo(d, domainInfoApi))
   );
-
+  
   let lines = ['Today\'s Creepiest Domains:'];
   stats.topDomains.forEach((domain, idx) => {
-    const owner = getDomainOwner(domain);
     const info = infos[idx];
+    const owner = extractOwner(info);
     let created = '';
     if (info) {
       if (info.events) {
