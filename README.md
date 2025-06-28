@@ -41,8 +41,6 @@ Because... why not?
 4. Use TinyLlama (through `node-llama-cpp`) to craft a satirical summary.
 5. Send report as a Discord embed to your channel.
 
-For development, a `mock_logs.json` file mimics Pi-hole/AdGuard output. A simple plugin reads this data so you can test without a real DNS filter.
-
 ## Installation
 
 ```bash
@@ -62,12 +60,7 @@ npm run start
 | `ADGUARD_URL`   | (Optional) AdGuard Home API base URL         |
 | `MODEL_PATH`    | Path to TinyLlama model for local inference  |
 | `REPORT_TIME`   | Time of day to send daily summaries (HH\:MM) |
-| `DOMAIN_INFO_API` | Optional API endpoint for domain lookups (defaults to RDAP) |
-
-The repo includes `mock_logs.json` and `domains.db` for local testing.
-
-By default domain metadata is pulled from `rdap.org`. Set `DOMAIN_INFO_API` if you
-want to use a different service.
+| `DOMAIN_INFO_API` | API endpoint for domain lookups |
 
 ## TODOs
 
