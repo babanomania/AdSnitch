@@ -1,0 +1,11 @@
+[
+  {"domain": "t.co", "count": 50},
+  {"domain": "doubleclick.net", "count": 40},
+  {"domain": "fbcdn.net", "count": 25},
+  {"domain": "telemetry.yourTV.com", "count": 20},
+  {"domain": "ads.twitter.com", "count": 15},
+  {"domain": "tracking.somesite.com", "count": 10},
+  {"domain": "cdn.suspicious.com", "count": 5},
+  {"domain": "analytics.example.org", "count": 2},
+  {"domain": "weird.example", "count": 1}
+]
