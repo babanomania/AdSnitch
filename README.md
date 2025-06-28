@@ -24,6 +24,7 @@ Because... why not?
 - **Discord bot** integration with clean embeds
 - Supports **Pi-hole** and **AdGuard Home** as data sources
 - Fully customizable tone: sarcastic, serious, sysadmin-rage, or Munna Bhai-style
+- **Domain intelligence** lookup for context-aware summaries
 
 ## Screenshots
 
@@ -36,8 +37,9 @@ Because... why not?
 
 1. Parse DNS logs from Pi-hole / AdGuard Home (via API or log scrape).
 2. Aggregate daily request data (blocked domains, counts, time trends).
-3. Use TinyLlama to generate a satirical summary.
-4. Send report as a Discord embed to your channel.
+3. Look up domain details via API.
+4. Use TinyLlama to generate a satirical summary.
+5. Send report as a Discord embed to your channel.
 
 ## Installation
 
@@ -58,6 +60,7 @@ npm run start
 | `ADGUARD_URL`   | (Optional) AdGuard Home API base URL         |
 | `MODEL_PATH`    | Path to TinyLlama model for local inference  |
 | `REPORT_TIME`   | Time of day to send daily summaries (HH\:MM) |
+| `DOMAIN_INFO_API` | API endpoint for domain lookups |
 
 ## TODOs
 
