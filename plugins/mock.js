@@ -6,7 +6,7 @@ async function getStats() {
   );
   // Sort by count descending
   const sorted = data.sort((a, b) => b.count - a.count);
-  const topDomains = sorted.map((d) => d.domain);
+  const topDomains = sorted.map((d) => ({ domain: d.domain, count: d.count }));
   return { topDomains };
 }
 
