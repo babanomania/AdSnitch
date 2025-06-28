@@ -26,6 +26,7 @@ Because... why not?
 - Fully customizable tone: sarcastic, serious, sysadmin-rage, or Munna Bhai-style
 - **Domain intelligence** lookup via RDAP for context-aware summaries
 - If no Discord token is provided, summaries are printed to the console
+- Optionally delegate summarization to OpenAI by providing `OPENAI_API_KEY` if TinyLlama is too slow on your machine
 
 ## Screenshots
 
@@ -66,6 +67,7 @@ Source code is organized under `src/` with test data in `data/`.
 | `MODEL_PATH`    | Path to TinyLlama model for local inference  |
 | `REPORT_TIME`   | Time of day to send daily summaries (HH\:MM) |
 | `DOMAIN_INFO_API` | Optional API endpoint for domain lookups (defaults to RDAP) |
+| `OPENAI_API_KEY` | Use OpenAI for summaries instead of local TinyLlama |
 
 The repo includes sample data in `data/mock_logs.json` and `data/domains.db` for local testing.
 
