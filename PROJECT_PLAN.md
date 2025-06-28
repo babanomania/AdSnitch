@@ -4,15 +4,16 @@ This document tracks tasks derived from the README goals.
 
 ## Phase 1 - Core Bot
 
-- [ ] Initialize Node.js project
-- [ ] Create environment variable template
-- [ ] Build Discord bot skeleton
+- [x] Initialize Node.js project
+- [x] Create environment variable template
+- [x] Build Discord bot skeleton
 - [ ] Implement log parsing for Pi-hole/AdGuard
 - [ ] Aggregate daily DNS request statistics
-- [ ] Generate satirical summary using TinyLlama (stub)
-- [ ] Fetch domain info for context-aware summary
-- [ ] Schedule daily summary via cron
-- [ ] Send summary to Discord as an embed
+- [x] Provide mock log plugin and domain owner DB
+- [x] Generate satirical summary using TinyLlama
+- [x] Fetch domain info for context-aware summary
+- [x] Schedule daily summary via cron
+- [x] Send summary to Discord as an embed
 
 ## Phase 2 - Extended Features
 

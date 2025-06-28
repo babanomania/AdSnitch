@@ -2,25 +2,37 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const cron = require('node-cron');
 const fetch = require('node-fetch');
+const fs = require('fs');
+const { generateSummaryLLM } = require('./summarizer');
+
+// simple plugin that reads mock logs
+const { getStats } = require('./plugins/mock');
 
 const token = process.env.DISCORD_TOKEN;
 const channelId = process.env.DISCORD_CHANNEL;
 const reportTime = process.env.REPORT_TIME || '09:00';
-const domainInfoApi = process.env.DOMAIN_INFO_API || 'https://api.domainsdb.info/v1/domains/search?domain=';
+const domainInfoApi = process.env.DOMAIN_INFO_API || null;
 
-// Placeholder: fetch and aggregate DNS log stats
+const domainDB = JSON.parse(fs.readFileSync('./domains.db', 'utf8'));
+
+// Fetch and aggregate DNS log stats via plugin
 async function getDailyStats() {
-  return {
-    topDomains: ['example.com'],
-    suspiciousPatterns: ['weird.example'],
-    weirdDomains: ['strange.domain']
-  };
+  return await getStats();
+}
+
+function getDomainOwner(domain) {
+  const parts = domain.split('.');
+  const root = parts.slice(-2).join('.');
+  return domainDB[domain] || domainDB[root] || 'Unknown';
 }
 
 // Retrieve extra information about a domain
 async function getDomainInfo(domain) {
+  const url = domainInfoApi
+    ? `${domainInfoApi}${domain}`
+    : `https://rdap.org/domain/${domain}`;
   try {
-    const res = await fetch(`${domainInfoApi}${domain}`);
+    const res = await fetch(url);
     return await res.json();
   } catch (err) {
     console.error('Domain info lookup failed:', err);
@@ -28,25 +40,33 @@ async function getDomainInfo(domain) {
   }
 }
 
-// Placeholder: use TinyLlama or other model to generate satirical text
-async function generateSummary(stats) {
-  // Fetch info for each top domain
-  const infos = await Promise.all(
-    stats.topDomains.map((d) => getDomainInfo(d))
-  );
+// Build a text prompt with domain data
+async function buildPrompt(stats) {
+  const infos = await Promise.all(stats.topDomains.map((d) => getDomainInfo(d)));
 
-  // In a real implementation, pass stats and infos to TinyLlama
-  let lines = [`Top domain: ${stats.topDomains[0]}`];
-  infos.forEach((info, idx) => {
-    if (info && info.domains && info.domains[0]) {
-      const d = info.domains[0];
-      lines.push(
-        `${d.domain} (created ${d.create_date || 'unknown'})`
-      );
+  let lines = ['Today\'s Creepiest Domains:'];
+  stats.topDomains.forEach((domain, idx) => {
+    const owner = getDomainOwner(domain);
+    const info = infos[idx];
+    let created = '';
+    if (info) {
+      if (info.events) {
+        const reg = (info.events || []).find((e) => e.eventAction === 'registration');
+        if (reg) created = `, registered ${reg.eventDate.slice(0, 10)}`;
+      } else if (info.domains && info.domains[0]) {
+        created = `, born ${info.domains[0].create_date || 'sometime in the void'}`;
+      }
     }
+    lines.push(`${idx + 1}. ${domain} (owned by ${owner}${created})`);
   });
-
   return lines.join('\n');
+}
+
+// Generate a humorous summary using TinyLlama
+async function generateSummary(stats) {
+  const prompt = await buildPrompt(stats);
+  const text = await generateSummaryLLM(prompt);
+  return text;
 }
 
 async function sendReport(client) {
