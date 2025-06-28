@@ -4,7 +4,7 @@ const cron = require('node-cron');
 const { generateSummaryLLM } = require('./summarizer');
 
 // simple plugin that reads mock logs
-const { getStats } = require('./plugins/mock');
+const { getStats } = require('./plugins');
 const { extractOwner, getDomainInfo } = require('./utils/domain');
 
 const token = process.env.DISCORD_TOKEN;
@@ -22,23 +22,35 @@ async function buildPrompt(stats) {
   const infos = await Promise.all(
     stats.topDomains.map((d) => getDomainInfo(d.domain, domainInfoApi))
   );
-  
-  let lines = ['Today\'s Creepiest Domains:'];
+
+  let lines = ["Today's Creepiest Domains:"];
   stats.topDomains.forEach((item, idx) => {
     const domain = item.domain;
     const count = item.count;
     const info = infos[idx];
-    const owner = extractOwner(info);
+    let owner = extractOwner(info);
     let created = '';
-    if (info) {
-      if (info.events) {
-        const reg = (info.events || []).find((e) => e.eventAction === 'registration');
-        if (reg) created = `, registered ${reg.eventDate.slice(0, 10)}`;
-      } else if (info.domains && info.domains[0]) {
-        created = `, born ${info.domains[0].create_date || 'sometime in the void'}`;
+    let vtDetails = '';
+    // If VirusTotal format, extract more details
+    if (info && info.data && info.data.attributes) {
+      const attr = info.data.attributes;
+      if (attr.last_analysis_stats) {
+        const stats = attr.last_analysis_stats;
+        vtDetails += ` VT: Malicious:${stats.malicious}, Suspicious:${stats.suspicious}, Harmless:${stats.harmless}`;
       }
+      if (attr.categories && Object.keys(attr.categories).length > 0) {
+        vtDetails += `, Categories: ${Object.values(attr.categories).join(', ')}`;
+      }
+      if (typeof attr.reputation === 'number') {
+        vtDetails += `, Reputation: ${attr.reputation}`;
+      }
+      if (attr.whois_date) {
+        created = `, registered ${new Date(attr.whois_date * 1000).toISOString().slice(0, 10)}`;
+      }
+    } else if (info && info.domains && info.domains[0]) {
+      created = `, born ${info.domains[0].create_date || 'sometime in the void'}`;
     }
-    lines.push(`${idx + 1}. ${domain} - ${count} hits (owned by ${owner}${created})`);
+    lines.push(`${idx + 1}. ${domain} - ${count} hits (owned by ${owner}${created})${vtDetails}`);
   });
   return lines.join('\n');
 }
@@ -78,6 +90,7 @@ if (token && channelId) {
   client.login(token);
 } else {
   console.log('Discord credentials missing; output will be logged to console.');
+  sendReport(null)
   cron.schedule(`${minute} ${hour} * * *`, () => sendReport(null), {
     timezone: 'UTC'
   });
