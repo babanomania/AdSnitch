@@ -44,6 +44,7 @@ Because... why not?
 
 For development, the `data/mock_logs.json` file mimics Pi-hole/AdGuard output. A simple plugin reads this data so you can test without a real DNS filter.
 
+
 ## Installation
 
 ```bash
@@ -71,6 +72,7 @@ The repo includes sample data in `data/mock_logs.json` and `data/domains.db` for
 
 By default domain metadata is pulled from `rdap.org`. Set `DOMAIN_INFO_API` if you
 want to use a different service.
+
 
 ## TODOs
 
