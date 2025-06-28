@@ -1,2 +1,13 @@
+# Node dependencies
 node_modules/
+
+# Environment files
 .env
+
+# Logs
+npm-debug.log*
+logs/
+
+# TinyLlama model
+tinyllama-model*
+*.gguf
