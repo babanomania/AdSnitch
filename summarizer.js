@@ -1,4 +1,5 @@
 const path = require('path');
+const fetch = require('node-fetch');
 let llama;
 let model;
 
@@ -13,7 +14,37 @@ async function loadModel() {
   return model;
 }
 
+async function generateSummaryOpenAI(text) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Summarize the following lines with humor.' },
+          { role: 'user', content: text }
+        ]
+      })
+    });
+    const data = await res.json();
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      return data.choices[0].message.content.trim();
+    }
+  } catch (err) {
+    console.error('OpenAI summarization failed:', err);
+  }
+  return null;
+}
+
 async function generateSummaryLLM(text) {
+  const openai = await generateSummaryOpenAI(text);
+  if (openai) return openai;
   try {
     const m = await loadModel();
     const context = await m.createContext();
