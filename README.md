@@ -20,10 +20,12 @@ Because... why not?
 ## Features
 
 - **Daily summaries** of DNS blocklists
-- **Powered by TinyLlama** for intelligent (and satirical) report generation
+- **Powered by TinyLlama** via `node-llama-cpp` for intelligent (and satirical) report generation
 - **Discord bot** integration with clean embeds
 - Supports **Pi-hole** and **AdGuard Home** as data sources
 - Fully customizable tone: sarcastic, serious, sysadmin-rage, or Munna Bhai-style
+- **Domain intelligence** lookup via RDAP for context-aware summaries
+- If no Discord token is provided, summaries are printed to the console
 
 ## Screenshots
 
@@ -36,8 +38,11 @@ Because... why not?
 
 1. Parse DNS logs from Pi-hole / AdGuard Home (via API or log scrape).
 2. Aggregate daily request data (blocked domains, counts, time trends).
-3. Use TinyLlama to generate a satirical summary.
-4. Send report as a Discord embed to your channel.
+3. Look up domain details via RDAP (or your custom API) and local `domains.db`.
+4. Use TinyLlama (through `node-llama-cpp`) to craft a satirical summary.
+5. Send the report as a Discord embed (or print to console if Discord is not configured).
+
+For development, the `data/mock_logs.json` file mimics Pi-hole/AdGuard output. A simple plugin reads this data so you can test without a real DNS filter.
 
 ## Installation
 
@@ -46,8 +51,10 @@ git clone https://github.com/babanomania/adsnitch.git
 cd adsnitch
 npm install
 cp .env.example .env   # Set up your bot token and Pi-hole/AdGuard details
-npm run start
+npm start
 ````
+
+Source code is organized under `src/` with test data in `data/`.
 
 ## Configuration
 
@@ -58,6 +65,12 @@ npm run start
 | `ADGUARD_URL`   | (Optional) AdGuard Home API base URL         |
 | `MODEL_PATH`    | Path to TinyLlama model for local inference  |
 | `REPORT_TIME`   | Time of day to send daily summaries (HH\:MM) |
+| `DOMAIN_INFO_API` | Optional API endpoint for domain lookups (defaults to RDAP) |
+
+The repo includes sample data in `data/mock_logs.json` and `data/domains.db` for local testing.
+
+By default domain metadata is pulled from `rdap.org`. Set `DOMAIN_INFO_API` if you
+want to use a different service.
 
 ## TODOs
 
