@@ -5,8 +5,7 @@
   "main": "src/bot.js",
   "scripts": {
     "start": "node src/bot.js",
-    "test": "node --test",
-    "download-model": "curl -L -o tinyllama-model.gguf https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v0.6/resolve/main/ggml-model-q4_0.gguf"
+    "test": "node src/test.js"
   },
   "keywords": [],
   "author": "",

@@ -1,51 +1,50 @@
-# AdSnitch 
-_Your TinyLlama-powered Discord tattletale that exposes the shady world of DNS requests — with sarcasm._
+# AdSnitch
+_Your privacy-loving, roast-delivering Discord tattletale for DNS logs — powered by local LLMs and a sense of humor._
+
+![AdSnitch Hero Screenshot](hero-image.png)
 
 ## What is AdSnitch?
 
-AdSnitch is a satirical Discord bot that spies on your Pi-hole or AdGuard Home logs and delivers **daily roast-style summaries** of blocked DNS requests. Think of it as your passive-aggressive network admin with a flair for drama, powered by TinyLlama. It’s like having a snarky IT guy in your Discord, but with less coffee and more existential dread.
+AdSnitch is a satirical Discord bot that spies on your Pi-hole or AdGuard Home logs and delivers **daily roast-style summaries** of blocked DNS requests. Think of it as your passive-aggressive network admin with a flair for drama, powered by local LLMs like Deepseek-R1:8B via Ollama. It’s like having a snarky IT guy in your Discord, but with less coffee and more existential dread — and it works entirely offline.
 
 Every day, AdSnitch reports:
 - The worst offenders (looking at you, `telemetry.yourTV.com`)
 - Suspicious patterns (`why-do-you-need-20-ad-requests-in-a-minute.com`)
 - Absurd domains you didn't know existed (and probably wish you still didn’t)
-- Security and reputation info from VirusTotal, because “just blocked” isn’t enough
+- Security and reputation info from VirusTotal (optional, for extra paranoia)
 - And all this, with a generous sprinkle of snark, sarcasm, and LLM-generated wit
 
 ## Why?
 
-Because knowing that your smart fridge is trying to contact 12 tracking domains daily *deserves commentary*.  
-Because laughter is the best firewall.  
-Because... why not?  
+Because knowing that your smart fridge is trying to contact 12 tracking domains daily *deserves commentary*.
+Because laughter is the best firewall.
+Because privacy matters — and AdSnitch can run 100% locally, with no cloud required.
 Because your router’s sense of humor is non-existent.
 
 ## Features
 
 - **Daily summaries** of DNS blocklists, so you can start your day with existential dread
-- **Powered by TinyLlama** via `node-llama-cpp` for intelligent (and satirical) report generation
+- **Powered by Deepseek-R1:8B (or any Ollama model)** — runs locally, no internet required
 - **Discord bot** integration with clean embeds (and even cleaner sarcasm)
-- Supports **Pi-hole** and **AdGuard Home** as data sources, because one DNS filter is never enough
-- Fully customizable tone: sarcastic, serious, sysadmin-rage, or Munna Bhai-style (for when you want your bot to sound like it’s from Bollywood)
-- **Domain intelligence** lookup via **VirusTotal** for context-aware, security-focused summaries (and more reasons to worry)
+- Supports **Pi-hole** and **AdGuard Home** as data sources
+- Fully customizable tone: sarcastic sysadmin, conspiracy uncle, optimistic intern, grumpy engineer, or poet
+- **Domain intelligence** lookup via **VirusTotal** for context-aware, security-focused summaries (optional, but highly recommended for extra insights)
 - If no Discord token is provided, summaries are printed to the console (for the truly friendless)
-- Optionally delegate summarization to OpenAI by providing `OPENAI_API_KEY` if TinyLlama is too slow on your machine (or if you just want to flex your API key)
+- No cloud LLM required — but you can use OpenAI as a fallback if you want
 
-## Sample Roasts
+## Screenshot
 
-> _"The award for Most Blocked Domain goes to... `ads.doubleclick.net`, again. Yawn."
->_  
-> _"Congratulations, your Wi-Fi light bulb just attempted to sell your soul 48 times today."_
->_  
-> _"[VT] Malicious: 2, Suspicious: 1, Harmless: 10, Categories: Advertising, Reputation: -5. Your network is a digital dumpster fire, but at least it’s *your* dumpster fire."_
+See how AdSnitch roasts your network right in Discord:
 
+![Discord Screenshot](screenshot.png)
 
 ## How it Works
 
 1. Parse DNS logs from Pi-hole / AdGuard Home (via API or log scrape).
 2. Aggregate daily request data (blocked domains, counts, time trends).
-3. Look up domain details and security reputation via VirusTotal (because ignorance isn’t bliss).
-4. Use TinyLlama (through `node-llama-cpp`) to craft a satirical summary (and roast your IoT devices).
-5. Send the report as a Discord embed (or print to console if Discord is not configured, you rebel).
+3. Optionally look up domain details and security reputation via VirusTotal (for extra context and paranoia).
+4. Use Deepseek-R1:8B (or any Ollama model) to craft a satirical summary — all locally, no internet needed.
+5. Send the report as a Discord embed (or print to console if Discord is not configured).
 
 For development, the `data/mock_logs.json` file mimics Pi-hole/AdGuard output. A simple plugin reads this data so you can test without a real DNS filter (or friends).
 
@@ -55,7 +54,8 @@ For development, the `data/mock_logs.json` file mimics Pi-hole/AdGuard output. A
 git clone https://github.com/babanomania/adsnitch.git
 cd adsnitch
 npm install
-cp .env.example .env   # Set up your bot token, Pi-hole/AdGuard, and VirusTotal details
+cp .env.example .env   # Set up your bot token, Pi-hole/AdGuard, and (optionally) VirusTotal details
+# Make sure you have Ollama and your model (e.g., deepseek-r1:8b) running locally
 npm start
 ```
 
@@ -71,15 +71,16 @@ Source code is organized under `src/` with test data in `data/`.
 | `ADGUARD_URL`         | (Optional) AdGuard Home API base URL         |
 | `ADGUARD_USER`        | (Optional) AdGuard Home username             |
 | `ADGUARD_PASS`        | (Optional) AdGuard Home password             |
-| `MODEL_PATH`          | Path to TinyLlama model for local inference  |
+| `OLLAMA_MODEL`        | Name of the Ollama model to use (e.g., deepseek-r1:8b, llama2, phi3, etc.) |
 | `REPORT_TIME`         | Time of day to send daily summaries (HH:MM)  |
-| `VIRUSTOTAL_API_KEY`  | API key for VirusTotal domain intelligence   |
-| `OPENAI_API_KEY`      | Use OpenAI for summaries instead of local TinyLlama |
+| `VIRUSTOTAL_API_KEY`  | (Optional) API key for VirusTotal domain intelligence |
+| `OPENAI_API_KEY`      | (Optional) Use OpenAI for summaries if you want cloud fallback |
 | `PERSONALITY`         | Personality mode for summaries: sysadmin, conspiracy_uncle, optimistic_intern, grumpy_engineer, poet |
+| `SUMMARY_TOP_N`       | Number of top domains to include in summary  |
 
 The repo includes sample data in `data/mock_logs.json` for local testing. Because sometimes you want to test your bot without actually blocking anything.
 
-By default, domain metadata and security info is pulled from VirusTotal. Set `VIRUSTOTAL_API_KEY` in your `.env` file. Or don’t. I’m not your boss.
+By default, domain metadata and security info is pulled from VirusTotal if you provide an API key. If you want maximum privacy, just leave it blank — AdSnitch will still work, but with less context.
 
 ## Personality Modes
 
@@ -149,12 +150,16 @@ Yet harmless traffic as well,
 Balance lost and found.
 ```
 
-## TODOs
+## FAQ
 
-* [ ] Web UI for configuring tone presets (because sarcasm should be customizable)
-* [ ] Support for other DNS filters (e.g., NextDNS, Unbound, your neighbor’s Wi-Fi)
-* [ ] Add meme mode (because why not)
-* [ ] Add Munna Bhai mode (for Gandhigiri DNS reports)
+**Q: Does AdSnitch require an internet connection?**
+A: Nope! If you use Ollama and a local model like Deepseek, everything runs on your machine. No cloud, no data leaks, just pure local snark.
+
+**Q: What does VirusTotal add?**
+A: If you provide a VirusTotal API key, AdSnitch will enrich your summaries with security and reputation info for each domain. It’s optional, but gives you more insight (and more reasons to worry).
+
+**Q: Can I use OpenAI instead?**
+A: Yes, just set your `OPENAI_API_KEY` in `.env` and AdSnitch will use OpenAI as a fallback if your local model isn’t available.
 
 ## License
 
