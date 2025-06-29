@@ -28,7 +28,21 @@ async function generateSummaryOllama(text) {
     });
     const data = await res.json();
     if (data && data.response) {
-      return data.response.trim();
+      // Extract and print <think>...</think> content to console, but remove from report
+      const thinkMatches = data.response.match(/<think>[\s\S]*?<\/think>/gi);
+      if (thinkMatches) {
+        thinkMatches.forEach(block => {
+          const content = block.replace(/<\/?think>/gi, '').trim();
+          if (content) console.log('[Deepseek <think> block]:', content);
+        });
+      }
+      return data.response
+        .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think>...</think> blocks
+        .split('\n')
+        .filter(line => !/^[ \t]*(Thought:|Action:|Observation:|Reflect:|Plan:|Next Step:|\[.*?\])/i.test(line))
+        .join('\n')
+        .replace(/<\/?think>/gi, '') // Remove any stray <think> or </think> tags
+        .trim();
     }
   } catch (err) {
     console.error('Ollama summarization failed:', err);

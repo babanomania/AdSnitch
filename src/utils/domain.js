@@ -2,9 +2,9 @@ const fetch = require('node-fetch');
 require('dotenv').config();
 
 async function getDomainInfo(domain) {
-  // Always use VirusTotal API
+  // Use VirusTotal API if available, else return null
   const vtKey = process.env.VIRUSTOTAL_API_KEY;
-  if (!vtKey) throw new Error('VIRUSTOTAL_API_KEY is not set in .env');
+  if (!vtKey) return null;
   const url = `https://www.virustotal.com/api/v3/domains/${domain}`;
   try {
     const res = await fetch(url, {
@@ -20,7 +20,7 @@ async function getDomainInfo(domain) {
   }
 }
 
-function extractOwner(info) {
+function extractOwner(info, fallbackDomain = null) {
   // Try VirusTotal format first
   if (info && info.data && info.data.attributes) {
     const attr = info.data.attributes;
@@ -69,12 +69,15 @@ function extractOwner(info) {
   }
   if (info && info.name) return info.name;
   if (info && info.org) return info.org;
+  if (fallbackDomain) return fallbackDomain; // fallback to domain name if no info
   return 'Unknown';
 }
 
 async function getDomainOwner(domain, api = null) {
   const info = await getDomainInfo(domain, api);
-  return extractOwner(info);
+  if (info) return extractOwner(info, domain);
+  // If no info (no VT key), fallback to just the domain name
+  return domain;
 }
 
 module.exports = { getDomainOwner, getDomainInfo, extractOwner };
